@@ -1,11 +1,22 @@
 defmodule Servy.Parser do
-  def parse(request) do
-    [method, path, _] =
-    request
-    |> String.split("\n") ## isso me retorna uma lista [blabla, blulblu, bleble]
-    |> List.first
-    |> String.split(" ") ## tbm retorna uma lista com [GET, /wildthings, HTTP/1.1 "]
 
-    %{method: method, status: nil, path: path, resp_body: ""}
+  alias Servy.Request
+
+  def parse(request) do
+    [top, params_string] = String.split(request, "\n\n")
+    [request_lines | header_lines] = String.split(top, "\n")
+    [method, path, _] = String.split(request_lines, " ")
+
+    params = parse_params(params_string)
+
+    %Request{
+      method: method,
+      path: path,
+      params: params
+    }
+  end
+
+  def parse_params(params_string) do
+    params_string |> String.trim |> URI.decode_query
   end
 end
