@@ -1,4 +1,12 @@
 defmodule Servy.Handler do
+
+  @moduledoc "usado para documentar os modulos"
+
+  @pages_path Path.expand("../../pages", __DIR__)
+
+  import Servy.Plugins, only: [rewrite_path: 1, log: 1, track: 1]
+  import Servy.Parser, only: [parse: 1]
+
   def handle(request) do
     request
     |> parse
@@ -9,36 +17,9 @@ defmodule Servy.Handler do
     |> format_response
   end
 
-  defp track(%{status: 404, path: path} = request) do
-    IO.puts "Warning: #{path} is on the loose!"
-    request
-  end
-
-  defp track(request), do: request
-
-  defp rewrite_path(%{path: "/wildlife"} = request) do
-    %{request | path: "/wildthings"}
-  end
-
-  defp rewrite_path(request), do: request
-
-  def log(request) do
-    IO.inspect request
-  end
-
-  defp parse(request) do
-    [method, path, _] =
-    request
-    |> String.split("\n") ## isso me retorna uma lista [blabla, blulblu, bleble]
-    |> List.first
-    |> String.split(" ") ## tbm retorna uma lista com [GET, /wildthings, HTTP/1.1 "]
-
-    %{method: method, status: nil, path: path, resp_body: ""}
-  end
-
   defp route(%{method: "GET", path: "/about"} = request) do
     file =
-      Path.expand("../../pages", __DIR__)
+      @pages_path
       |> Path.join("about.html")
 
     case File.read(file) do
