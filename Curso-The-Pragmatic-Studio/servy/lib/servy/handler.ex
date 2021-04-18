@@ -7,6 +7,7 @@ defmodule Servy.Handler do
   import Servy.Plugins, only: [rewrite_path: 1, log: 1, track: 1]
   import Servy.Parser, only: [parse: 1]
   alias Servy.Request
+  alias Servy.BearController
 
   def handle(request) do
     request
@@ -18,38 +19,44 @@ defmodule Servy.Handler do
     |> format_response
   end
 
-  defp route(%Request{method: "GET", path: "/about"} = request) do
-    file =
-      @pages_path
-      |> Path.join("about.html")
-
-    case File.read(file) do
-      {:ok, content} ->
-        %{request | status: 200, resp_body: content}
-
-      {:error, :enoent} ->
-        %{request | status: 404, resp_body: "File not found!"}
-
-      {:error, reason} ->
-        %{request | status: 500, resp_body: "File error #{reason}"}
-    end
-  end
-
   defp route(%Request{method: "GET", path: "/wildthings"} = parsed_request) do
     %{ parsed_request | status: 200, resp_body: "Bears, Lions, Tigers"}
   end
 
+  defp route(%Request{method: "GET", path: "/bears"} = parsed_request) do
+    BearController.index(parsed_request)
+  end
+
   defp route(%Request{method: "POST", path: "/bears"} = parsed_request) do
-    %{ parsed_request | status: 201,
-                        resp_body: "Created a #{parsed_request.params["type"]} bears named #{parsed_request.params["name"]}"}
+    BearController.create(parsed_request, parsed_request.params)
   end
 
   defp route(%Request{method: "GET", path: "/bears/" <> id} = parsed_request) do
-    %{ parsed_request | status: 200, resp_body: "Bear #{id}"}
+    params = Map.put(parsed_request.params, "id", id)
+    BearController.show(parsed_request, params)
+  end
+
+  defp route(%Request{method: "GET", path: "/about"} = request) do
+    @pages_path
+    |> Path.join("about.html")
+    |> File.read
+    |> handle_file(request)
   end
 
   defp route(%Request{ path: path } = parsed_request) do
     %{ parsed_request | status: 404, resp_body: "No #{path} here!"}
+  end
+
+  defp handle_file({:ok, content}, request) do
+    %{request | status: 200, resp_body: content}
+  end
+
+  defp handle_file({:error, :enoent}, request) do
+    %{request | status: 404, resp_body: "File not found!"}
+  end
+
+  defp handle_file({:error, reason}, request) do
+    %{request | status: 500, resp_body: "File error #{reason}"}
   end
 
   defp format_response(%Request{} = response) do

@@ -2,7 +2,8 @@ defmodule Servy.Request do
   defstruct method: "",
             path: "",
             resp_body: "",
-            params: "",
+            params: %{},
+            headers: %{},
             status: nil
 
   def full_status(request) do
@@ -13,8 +14,10 @@ defmodule Servy.Request do
     %{
       200 => "OK",
       201 => "Created",
+      401 => "Unauthorized",
+      403 => "Forbidden",
       404 => "Not Found",
-      500 => "Internal server error"
+      500 => "Internal Server Error"
     }[code]
   end
 end
