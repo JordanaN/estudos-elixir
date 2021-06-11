@@ -3,8 +3,8 @@ defmodule Servy.Parser do
   alias Servy.Request
 
   def parse(request) do
-    [top, params_string] = String.split(request, "\n\n")
-    [request_lines | header_lines] = String.split(top, "\n")
+    [top, params_string] = String.split(request, "\r\n\r\n")
+    [request_lines | header_lines] = String.split(top, "\r\n")
     [method, path, _] = String.split(request_lines, " ")
 
     headers = parse_headers(header_lines, %{})

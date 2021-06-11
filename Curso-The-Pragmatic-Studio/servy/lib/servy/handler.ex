@@ -23,6 +23,10 @@ defmodule Servy.Handler do
     %{ parsed_request | status: 200, resp_body: "Bears, Lions, Tigers"}
   end
 
+  defp route(%Request{method: "GET", path: "/api/bears"} = parsed_request) do
+    Servy.Api.BearController.index(parsed_request)
+  end
+
   defp route(%Request{method: "GET", path: "/bears"} = parsed_request) do
     BearController.index(parsed_request)
   end
@@ -61,88 +65,11 @@ defmodule Servy.Handler do
 
   defp format_response(%Request{} = response) do
     """
-    HTTP/1.1 #{Request.full_status(response)}
-    Content-Type: text/html
-    Content-Length: #{String.length(response.resp_body)}
-
+    HTTP/1.1 #{Request.full_status(response)}\r
+    Content-Type: #{response.resp_content_type}\r
+    Content-Length: #{String.length(response.resp_body)}\r
+    \r
     #{response.resp_body}
     """
   end
 end
-
-request = """
-GET /wildthings HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-
-"""
-
-response = Servy.Handler.handle(request)
-
-
-IO.puts response
-
-request = """
-GET /bears HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-
-"""
-
-response = Servy.Handler.handle(request)
-
-IO.puts response
-
-request = """
-GET /about HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-
-"""
-
-response = Servy.Handler.handle(request)
-
-IO.puts response
-
-request = """
-GET /bears/1 HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-
-"""
-
-response = Servy.Handler.handle(request)
-
-IO.puts response
-
-request = """
-GET /bacon HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-
-"""
-
-response = Servy.Handler.handle(request)
-
-IO.puts response
-
-
-request = """
-POST /bears HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 21
-
-name=Baloo&type=Brown
-"""
-
-response = Servy.Handler.handle(request)
-
-IO.puts response
